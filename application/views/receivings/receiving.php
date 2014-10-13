@@ -9,30 +9,50 @@ if(isset($error))
 }
 ?>
 
-
-
 <div id="register_wrapper">
 	<?php echo form_open("receivings/change_mode",array('id'=>'mode_form')); ?>
-    <span><?php echo $this->lang->line('recvs_mode') ?></span>
+    <span><?php echo $this->lang->line('recvs_mode') ?></span>&nbsp &nbsp
 	<?php echo form_dropdown('mode',$modes,$mode,'onchange="$(\'#mode_form\').submit();"'); ?>
-    
+    &nbsp &nbsp  &nbsp &nbsp  &nbsp &nbsp &nbsp 
 	<?php 
+	
+	//echo $supp;
 	if ($show_stock_locations) 
 	{
 	?>
-    <span><?php echo $this->lang->line('recvs_stock_source') ?></span>
-    <?php echo form_dropdown('stock_source',$stock_locations,$stock_source,'onchange="$(\'#mode_form\').submit();"'); ?>
-    <?php 
+    <span><?php echo $this->lang->line('recvs_stock_source') ?></span>&nbsp
+    <?php echo form_dropdown('stock_source',$stock_locations,$stock_source,'onchange="$(\'#mode_form\').submit();"');?>
+   
+	<?php 
     if($mode=='requisition')
     {
     ?>
-    <span><?php echo $this->lang->line('recvs_stock_destination') ?></span>
+    </br><h3 style= "margin: 7px 0;"></h3>
+    <span><?php echo $this->lang->line('recvs_stock_destination') ?></span>&nbsp
 	<?php echo form_dropdown('stock_destination',$stock_locations,$stock_destination,'onchange="$(\'#mode_form\').submit();"');        
     }
 	}
 	?>    
+	
+<div id="show_receivings_sales_button">
+    <?php
+	// This part conntrols if there are Items already in the sale.
+	//if(count($cart)==0)
+	{
+	?>
+  
+	<?php echo anchor("receivings/received/width:425", "<div class='small_button'><span style='font-size:90%;'>".$this->lang->line('recvs_received')."</span></div>",
+	 array('class'=>'thickbox none','title'=>$this->lang->line('recvs_received')));
+	 ?> 
+     <?php
+		}
+		?>  
+</div>
 	</form>
 	<?php echo form_open("receivings/add",array('id'=>'add_item_form')); ?>
+	<label id="item_label" for="item">
+
+		<?php echo form_open("receivings/add",array('id'=>'add_item_form')); ?>
 	<label id="item_label" for="item">
 
 	<?php
@@ -46,14 +66,24 @@ if(isset($error))
 	}
 	?>
 	</label>
-<?php echo form_input(array('name'=>'item','id'=>'item','size'=>'40'));?>
-<div id="new_item_button_register" >
-		<?php echo anchor("items/view/-1/width:360",
-		"<div class='small_button'><span>".$this->lang->line('sales_new_item')."</span></div>",
-		array('class'=>'thickbox none','title'=>$this->lang->line('sales_new_item')));
-		?>
-	</div>
+<?php echo form_input(array('name'=>'item','id'=>'item','size'=>'35'));?>
 
+<?php 
+    if($mode !='requisition')
+    {
+    ?>
+
+<div id= 'num2'>
+    <?php  echo form_open("receivings/complete",array('id'=>'finish_sale_form')); ?>
+	<?php echo $this->lang->line('recvs_inv') ?><span>&nbsp;</span>        
+ 	<?php echo form_input(array('name'=>'inv_no', 'id' => 'inv_no', 'value'=>$inv_no,'size'=>'9'));?> 
+    <?php
+	
+	?>
+	</div>
+    <?php
+	}
+    ?>
 </form>
 
 <!-- Receiving Items List -->
@@ -117,7 +147,7 @@ else
 ?>
 	    </td>
 	    
-<?php       if ($items_module_allowed && !$mode=='requisition')
+<?php       if ($items_module_allowed && $mode!='requisition')
 		    {
 ?>
 		    <td><?php echo form_input(array('name'=>'discount','value'=>$item['discount'],'size'=>'3'));?></td>

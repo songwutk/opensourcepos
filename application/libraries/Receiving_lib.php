@@ -33,6 +33,44 @@ class Receiving_lib
 	{
 		$this->CI->session->set_userdata('supplier',$supplier_id);
 	}
+	
+	function get_receiving_id() 
+	{
+			return $this->CI->session->userdata('receiving_id');
+	}	
+	
+	function set_receiving_id($receiving_id) 
+	{	
+	$this->CI->session->set_userdata('receiving_id', $receiving_id);
+	}
+	
+	function clear_receiving_id() 	
+	{
+		$this->CI->session->unset_userdata('receiving_id');
+	}
+	
+	function get_inv_no()
+	{
+		if(!$this->CI->session->userdata('inv_no'))
+		{
+			//$inv_no = $inv_no('');
+			//return $inv_no;
+			}
+			else
+			{
+		return $this->CI->session->userdata('inv_no');
+		}
+	}
+	
+	function set_inv_no($inv_no)
+	{
+		$this->CI->session->set_userdata('inv_no',$inv_no);
+	}
+	
+	function clear_inv_no() 	
+	{
+		$this->CI->session->unset_userdata('inv_no');
+	}
 
 	function get_mode()
 	{
@@ -226,6 +264,7 @@ class Receiving_lib
 			$this->add_item($row->item_id,-$row->quantity_purchased,$row->item_location,$row->discount_percent,$row->item_unit_price,$row->description,$row->serialnumber);
 		}
 		$this->set_supplier($this->CI->Receiving->get_supplier($receiving_id)->person_id);
+		$this->set_inv_no($this->CI->Receiving->get_inv_no($receiving_id));
 	}
 	
 	function add_item_kit($external_item_kit_id,$item_location)
@@ -250,6 +289,7 @@ class Receiving_lib
 			$this->add_item($row->item_id,$row->quantity_purchased,$row->item_location,$row->discount_percent,$row->item_unit_price,$row->description,$row->serialnumber);
 		}
 		$this->set_supplier($this->CI->Receiving->get_supplier($receiving_id)->person_id);
+		$this->set_inv_no($this->CI->Receiving->get_inv_no($receiving_id));
 
 	}
 	
@@ -264,6 +304,20 @@ class Receiving_lib
 		}
 		$this->set_supplier($this->CI->Receiving->get_supplier($requisition_id)->person_id);
 	
+	}
+	
+	function copy_entire_receiving_inv($receiving_id)
+	{
+		$this->empty_cart();
+		$this->delete_supplier();
+
+		foreach($this->CI->Receiving_inv->get_receiving_items($receiving_id)->result() as $row)
+		{
+			$this->add_item($row->item_id,$row->quantity_purchased,$row->item_location,$row->discount_percent,$row->item_unit_price,$row->description,$row->serialnumber);
+		}
+		$this->set_supplier($this->CI->Receiving_inv->get_supplier($receiving_id)->person_id);
+		$this->set_inv_no($this->CI->Receiving_inv->get_inv_no($receiving_id));
+		$this->set_comment($this->CI->Receiving_inv->get_comment($receiving_id));
 	}
 
 	function delete_item($line)
@@ -282,6 +336,11 @@ class Receiving_lib
 	{
 		$this->CI->session->unset_userdata('supplier');
 	}
+	
+	function delete_inv_no()
+	{
+		$this->CI->session->unset_userdata('inv_no');
+	}
 
 	function clear_mode()
 	{
@@ -293,6 +352,16 @@ class Receiving_lib
 		$this->clear_mode();
 		$this->empty_cart();
 		$this->delete_supplier();
+		$this->clear_comment();
+		$this->clear_inv_no();
+	}
+	
+	function get_item_total($quantity, $price, $discount_percentage)
+	{
+		$total = bcmul($quantity, $price, PRECISION);
+		$discount_fraction = bcdiv($discount_percentage, 100, PRECISION);
+		$discount_amount =  bcmul($total, $discount_fraction, PRECISION);
+		return bcsub($total, $discount_amount, PRECISION);
 	}
 
 	function get_total()
@@ -300,7 +369,7 @@ class Receiving_lib
 		$total = 0;
 		foreach($this->get_cart() as $item)
 		{
-            $total+=($item['price']*$item['quantity']-$item['price']*$item['quantity']*$item['discount']/100);
+			$total =+ $this->get_item_total($item['quantity'], $item['price'], $item['discount']);
 		}
 		
 		return $total;

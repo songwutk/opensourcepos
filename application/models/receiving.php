@@ -17,7 +17,7 @@ class Receiving extends CI_Model
 		return ($query->num_rows()==1);
 	}
 
-	function save ($items,$supplier_id,$employee_id,$comment,$payment_type,$receiving_id=false)
+	function save ($items,$supplier_id,$employee_id,$comment,$payment_type,$inv_no,$receiving_id=false)
 	{
 		if(count($items)==0)
 			return -1;
@@ -26,9 +26,11 @@ class Receiving extends CI_Model
 		'supplier_id'=> $this->Supplier->exists($supplier_id) ? $supplier_id : null,
 		'employee_id'=>$employee_id,
 		'payment_type'=>$payment_type,
-		'comment'=>$comment
+		'comment'=>$comment,
+		'inv_no'=>$inv_no
+		
 		);
-
+		
 		//Run these queries as a transaction, we want to make sure we do all or nothing
 		$this->db->trans_start();
 
@@ -51,6 +53,7 @@ class Receiving extends CI_Model
 				'discount_percent'=>$item['discount'],
 				'item_cost_price' => $cur_item_info->cost_price,
 				'item_unit_price'=>$item['price'],
+				'inv_no'=> $inv_no,
 				'item_location'=>$item['item_location']
 			);
 
@@ -62,7 +65,6 @@ class Receiving extends CI_Model
                                               'item_id'=>$item['item_id'],
                                               'location_id'=>$item['item_location']), $item['item_id'], $item['item_location']);
 			
-			
 			$qty_recv = $item['quantity'];
 			$recv_remarks ='RECV '.$receiving_id;
 			$inv_data = array
@@ -70,9 +72,9 @@ class Receiving extends CI_Model
 				'trans_date'=>date('Y-m-d H:i:s'),
 				'trans_items'=>$item['item_id'],
 				'trans_user'=>$employee_id,
-				'trans_location'=>$item['item_location'],
 				'trans_comment'=>$recv_remarks,
 				'trans_inventory'=>$qty_recv
+				
 			);
 			$this->Inventory->insert($inv_data);
 
@@ -101,16 +103,23 @@ class Receiving extends CI_Model
 		$this->db->where('receiving_id',$receiving_id);
 		return $this->Supplier->get_info($this->db->get()->row()->supplier_id);
 	}
+		
+	function get_inv_no($receiving_id)
+	{
+		$this->db->from('receivings');
+		$this->db->where('receiving_id',$receiving_id);
+		return $this->db->get();
+	}
 	
 	//We create a temp table that allows us to do easy report/receiving queries
 	public function create_receivings_items_temp_table()
 	{
 		$this->db->query("CREATE TEMPORARY TABLE ".$this->db->dbprefix('receivings_items_temp')."
-		(SELECT date(receiving_time) as receiving_date, ".$this->db->dbprefix('receivings_items').".receiving_id, comment,payment_type, employee_id, 
-		".$this->db->dbprefix('items').".item_id, ".$this->db->dbprefix('receivings').".supplier_id, quantity_purchased, item_cost_price, item_unit_price,
+		(SELECT date(receiving_time) as receiving_date, ".$this->db->dbprefix('receivings_items').".receiving_id, payment_type, employee_id, 
+		".$this->db->dbprefix('items').".item_id, ".$this->db->dbprefix('receivings').".supplier_id, comment, quantity_purchased, item_cost_price, item_unit_price, 
 		discount_percent, (item_unit_price*quantity_purchased-item_unit_price*quantity_purchased*discount_percent/100) as subtotal,
-		".$this->db->dbprefix('receivings_items').".line as line, serialnumber, ".$this->db->dbprefix('receivings_items').".description as description,
-		(item_unit_price*quantity_purchased-item_unit_price*quantity_purchased*discount_percent/100) as total,
+		".$this->db->dbprefix('receivings_items').".line as line, serialnumber, ".$this->db->dbprefix('receivings_items').".inv_no as inv_no, ".$this->db->dbprefix('receivings_items').".description as description,
+		ROUND((item_unit_price*quantity_purchased-item_unit_price*quantity_purchased*discount_percent/100),2) as total,
 		(item_unit_price*quantity_purchased-item_unit_price*quantity_purchased*discount_percent/100) - (item_cost_price*quantity_purchased) as profit
 		FROM ".$this->db->dbprefix('receivings_items')."
 		INNER JOIN ".$this->db->dbprefix('receivings')." ON  ".$this->db->dbprefix('receivings_items').'.receiving_id='.$this->db->dbprefix('receivings').'.receiving_id'."

@@ -13,6 +13,12 @@ $lang['module_employees_desc']='Add, Update, Delete, and Search employees';
 $lang['module_sales']='Sales';
 $lang['module_sales_desc']='Process sales and returns';
 
+$lang['module_cashier']='Cashier';
+$lang['module_cashier_desc']='Finalise Transactions';
+
+$lang['module_coster']='Coster';
+$lang['module_coster_desc']='Add, Update, and Post Order';
+
 $lang['module_reports']='Reports';
 $lang['module_reports_desc']='View and generate reports';
 

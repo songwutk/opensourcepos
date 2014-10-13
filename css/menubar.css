@@ -23,7 +23,7 @@
 .menu_item
 {
 	float:left;
-	width:65px;
+	width:55px;
 	height:100%;
 	text-align:center;	
 }
@@ -64,8 +64,8 @@
 #menubar_navigation
 {
 	position:relative;
-	width:75%;
-	left:200px;
+	width:85%;
+	left:220px;
 	top:8px;
 	height:45%;
 }

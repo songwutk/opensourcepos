@@ -4,7 +4,7 @@ class Sales extends Secure_area
 {
 	function __construct()
 	{
-		parent::__construct('sales');
+		parent::__construct('sales','items');
 		$this->load->library('sale_lib');
 	}
 
@@ -52,6 +52,16 @@ class Sales extends Secure_area
 	function set_comment() 
 	{
  	  $this->sale_lib->set_comment($this->input->post('comment'));
+	}
+	
+	function set_trans_no() 
+	{
+ 	  $this->sale_lib->set_trans_no($this->input->post('trans_no'));
+	}
+	
+	function set_sale_id() 
+	{
+ 	  $this->sale_lib->set_trans_no($this->input->post('sale_id'));
 	}
 	
 	function set_email_receipt()
@@ -202,11 +212,12 @@ class Sales extends Secure_area
 		$customer_id=$this->sale_lib->get_customer();
 		$employee_id=$this->Employee->get_logged_in_employee_info()->person_id;
 		$comment = $this->sale_lib->get_comment();
+		$trans_no = $this->sale_lib->get_trans_no();
 		$emp_info=$this->Employee->get_info($employee_id);
 		$data['payments']=$this->sale_lib->get_payments();
 		$data['amount_change']=to_currency($this->sale_lib->get_amount_due() * -1);
 		$data['employee']=$emp_info->first_name.' '.$emp_info->last_name;
-        
+
 		if($customer_id!=-1)
 		{
 			$cust_info=$this->Customer->get_info($customer_id);
@@ -214,8 +225,8 @@ class Sales extends Secure_area
 		}
 
 		//SAVE sale to database
-		$data['sale_id']='POS '.$this->Sale->save($data['cart'], $customer_id,$employee_id,$comment,$data['payments']);
-		if ($data['sale_id'] == 'POS -1')
+		$data['sale_id']='CR '.$this->Sale->save($data['cart'], $customer_id,$employee_id,$comment,$trans_no,$data['payments']);
+		if ($data['sale_id'] == 'CR -1')
 		{
 			$data['error_message'] = $this->lang->line('sales_transaction_failed');
 		}
@@ -263,10 +274,11 @@ class Sales extends Secure_area
 			$cust_info=$this->Customer->get_info($customer_id);
 			$data['customer']=$cust_info->first_name.' '.$cust_info->last_name;
 		}
-		$data['sale_id']='POS '.$sale_id;
+		$data['sale_id']='CR '.$sale_id;
 		$this->load->view("sales/receipt",$data);
 		$this->sale_lib->clear_all();
 		$this->_remove_duplicate_cookies();
+
 	}
 	
 	function edit($sale_id)
@@ -314,7 +326,8 @@ class Sales extends Secure_area
 			'sale_time' => date('Y-m-d', strtotime($this->input->post('date'))),
 			'customer_id' => $this->input->post('customer_id') ? $this->input->post('customer_id') : null,
 			'employee_id' => $this->input->post('employee_id'),
-			'comment' => $this->input->post('comment')
+			'comment' => $this->input->post('comment'),
+			'trans_no' => $this->input->post('trans_no')
 		);
 		
 		if ($this->Sale->update($sale_data, $sale_id))
@@ -345,8 +358,7 @@ class Sales extends Secure_area
 		}
 
 		/* Changed the conditional to account for floating point rounding */
-		if ( ($this->sale_lib->get_mode() == 'sale') && 
-		      ( ( to_currency_no_money( $this->sale_lib->get_total() ) - $total_payments ) > 1e-6 ) )
+		if ( ( $this->sale_lib->get_mode() == 'sale' ) && ( ( to_currency_no_money( $this->sale_lib->get_total() ) - $total_payments ) > 1e-6 ) )
 		{
 			return false;
 		}
@@ -357,11 +369,12 @@ class Sales extends Secure_area
 	function _reload($data=array())
 	{
 		$person_info = $this->Employee->get_logged_in_employee_info();
-		$data['cart']=$this->sale_lib->get_cart();	 
-        $data['modes']=array('sale'=>$this->lang->line('sales_sale'),'return'=>$this->lang->line('sales_return'));
-        $data['mode']=$this->sale_lib->get_mode();
-                     
-        $data['stock_locations'] = array();
+		$data['sale_id']=$this->sale_lib->get_sale_id();
+		$data['cart']=$this->sale_lib->get_cart();
+		$data['modes']=array('sale'=>$this->lang->line('sales_sale'),'return'=>$this->lang->line('sales_return'));
+		$data['mode']=$this->sale_lib->get_mode();
+		
+		$data['stock_locations'] = array();
         $stock_locations = $this->Stock_locations->get_undeleted_all()->result_array();
         $show_stock_locations = count($stock_locations) > 1;
         if ($show_stock_locations) {
@@ -372,12 +385,13 @@ class Sales extends Secure_area
 	        $data['stock_location']=$this->sale_lib->get_sale_location();
         }
         $data['show_stock_locations'] = $show_stock_locations;
-        
+
 		$data['subtotal']=$this->sale_lib->get_subtotal();
 		$data['taxes']=$this->sale_lib->get_taxes();
 		$data['total']=$this->sale_lib->get_total();
 		$data['items_module_allowed'] = $this->Employee->has_permission('items', $person_info->person_id);
 		$data['comment'] = $this->sale_lib->get_comment();
+		$data['trans_no'] = $this->sale_lib->get_trans_no();
 		$data['email_receipt'] = $this->sale_lib->get_email_receipt();
 		$data['payments_total']=$this->sale_lib->get_payments_total();
 		$data['amount_due']=$this->sale_lib->get_amount_due();
@@ -389,7 +403,7 @@ class Sales extends Secure_area
 			$this->lang->line('sales_debit') => $this->lang->line('sales_debit'),
 			$this->lang->line('sales_credit') => $this->lang->line('sales_credit')
 		);
-
+		//$data['sale_id']='POS'.$sale_id;
 		$customer_id=$this->sale_lib->get_customer();
 		if($customer_id!=-1)
 		{
@@ -397,9 +411,11 @@ class Sales extends Secure_area
 			$data['customer']=$info->first_name.' '.$info->last_name;
 			$data['customer_email']=$info->email;
 		}
+		
 		$data['payments_cover_total'] = $this->_payments_cover_total();
 		$this->load->view("sales/register",$data);
 		$this->_remove_duplicate_cookies();
+
 	}
 
     function cancel_sale()
@@ -420,6 +436,7 @@ class Sales extends Secure_area
 		$customer_id=$this->sale_lib->get_customer();
 		$employee_id=$this->Employee->get_logged_in_employee_info()->person_id;
 		$comment = $this->input->post('comment');
+		$trans_no = $this->input->post('trans_no');
 		$emp_info=$this->Employee->get_info($employee_id);
 		$payment_type = $this->input->post('payment_type');
 		$data['payment_type']=$this->input->post('payment_type');
@@ -442,13 +459,13 @@ class Sales extends Secure_area
 		}
 
 		//SAVE sale to database
-		$data['sale_id']='POS '.$this->Sale_suspended->save($data['cart'], $customer_id,$employee_id,$comment,$data['payments']);
-		if ($data['sale_id'] == 'POS -1')
+		$data['sale_id']='CR '.$this->Sale_suspended->save($data['cart'], $customer_id,$employee_id,$trans_no,$comment,$data['payments']);
+		if ($data['sale_id'] == 'CR -1')
 		{
 			$data['error_message'] = $this->lang->line('sales_transaction_failed');
 		}
 		$this->sale_lib->clear_all();
-		$this->_reload(array('success' => $this->lang->line('sales_successfully_suspended_sale')));
+		$this->_reload(array('success' => $this->lang->line('sales_successfully_post_sale')));
 	}
 	
 	function suspended()

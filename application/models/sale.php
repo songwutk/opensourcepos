@@ -28,7 +28,7 @@ class Sale extends CI_Model
 		return $success;
 	}
 	
-	function save ($items,$customer_id,$employee_id,$comment,$payments,$sale_id=false)
+	function save ($items,$customer_id,$employee_id,$comment,$trans_no,$payments,$sale_id=false)
 	{
 		if(count($items)==0)
 			return -1;
@@ -43,6 +43,7 @@ class Sale extends CI_Model
 
 		$sales_data = array(
 			'sale_time' => date('Y-m-d H:i:s'),
+			'trans_no' =>$trans_no,
 			'customer_id'=> $this->Customer->exists($customer_id) ? $customer_id : null,
 			'employee_id'=>$employee_id,
 			'payment_type'=>$payment_types,
