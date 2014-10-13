@@ -1,5 +1,4 @@
 <?php
-define("PRECISION", 3);
 
 class Sale_lib
 {
@@ -232,9 +231,8 @@ class Sale_lib
     {
         if(!$this->CI->session->userdata('sale_location'))
         {
-             $stock_locations = $this->CI->Stock_locations->get_undeleted_all()->result_array();
-             $location_name = $stock_locations[0]['location_id'];
-             $this->set_sale_location($location_name);
+             $location_id = $this->CI->Stock_locations->get_default_location_id();
+             $this->set_sale_location($location_id);
         }
         return $this->CI->session->userdata('sale_location');
     }

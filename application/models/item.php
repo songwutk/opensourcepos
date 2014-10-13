@@ -16,11 +16,16 @@ class Item extends CI_Model
 	/*
 	Returns all the items
 	*/
-	function get_all($limit=10000, $offset=0)
+	function get_all($stock_location_id=-1,$limit=10000,$offset=0)
 	{
 		$this->db->from('items');
+		if ($stock_location_id > -1)
+		{
+			$this->db->join('item_quantities','item_quantities.item_id=items.item_id');
+			$this->db->where('location_id',$stock_location_id);
+		}
 		$this->db->where('deleted',0);
-		$this->db->order_by("name", "asc");
+		$this->db->order_by("name","asc");
 		$this->db->limit($limit);
 		$this->db->offset($offset);
 		return $this->db->get();
@@ -33,9 +38,11 @@ class Item extends CI_Model
 		return $this->db->count_all_results();
 	}
 
-	function get_all_filtered($is_serialized=0,$no_description,$search_custom,$is_deleted)/**GARRISON MODIFIED 4/21/2013, Parq 131215 **/
+	function get_all_filtered($stock_location_id,$is_serialized=0,$no_description,$search_custom,$is_deleted)/**GARRISON MODIFIED 4/21/2013, Parq 131215 **/
 	{
 		$this->db->from('items');
+		$this->db->join('item_quantities','item_quantities.item_id=items.item_id');
+		$this->db->where('location_id',$stock_location_id);
 		if ($is_serialized !=0 )
 		{
 			$this->db->where('is_serialized',1);
@@ -62,14 +69,7 @@ class Item extends CI_Model
 			$this->db->or_like('custom10',$search);
 		}
 **/		
-/* Parq 131215 start*/
-		if ($is_deleted !=0 )
-		{
-			$this->db->where('deleted',1);
-		} else {
-			$this->db->where('deleted',0);
-		}
-/* Parq 131215 end*/
+		$this->db->where('deleted',$is_deleted);
 		$this->db->order_by("name", "asc");
 		return $this->db->get();
 	}
@@ -552,6 +552,7 @@ class Item extends CI_Model
 	function search($search)
 	{
 		$this->db->from('items');
+		
 		$this->db->where("(
 				name LIKE '%".$this->db->escape_like_str($search)."%' or 
 				item_number LIKE '%".$this->db->escape_like_str($search)."%' or 
@@ -583,26 +584,5 @@ class Item extends CI_Model
 		return $this->db->get();
 	}
     
-    function is_sale_store_item_exist($item_number)
-    {
-        $this->db->from('items');
-        $this->db->where('item_number',$item_number);
-        $this->db->where('stock_type','sale_stock');
-        $this->db->where('deleted',0);
-
-        $query = $this->db->get();
-        return ($query->num_rows()==1);
-    }
-    
-    function is_warehouse_item_exist($item_number)
-    {
-        $this->db->from('items');
-        $this->db->where('item_number',$item_number);
-        $this->db->where('stock_type','warehouse');
-        $this->db->where('deleted',0);
-
-        $query = $this->db->get();
-        return ($query->num_rows()==1);
-    }
 }
 ?>

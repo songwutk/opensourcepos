@@ -389,7 +389,7 @@ class Cashier extends Secure_area
 		$data['subtotal']=$this->sale_lib->get_subtotal();
 		$data['taxes']=$this->sale_lib->get_taxes();
 		$data['total']=$this->sale_lib->get_total();
-		$data['items_module_allowed'] = $this->Employee->has_permission('items', $person_info->person_id);
+		$data['items_module_allowed'] = $this->Employee->has_grant('items', $person_info->person_id);
 		$data['comment'] = $this->sale_lib->get_comment();
 		$data['trans_no'] = $this->sale_lib->get_trans_no();
 		$data['email_receipt'] = $this->sale_lib->get_email_receipt();
@@ -413,7 +413,7 @@ class Cashier extends Secure_area
 		}
 		
 		$data['payments_cover_total'] = $this->_payments_cover_total();
-		$this->load->view("cashier/register",$data);
+		$this->load->view('cashier/register',$data);
 		$this->_remove_duplicate_cookies();
 
 	}

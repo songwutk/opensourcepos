@@ -17,25 +17,56 @@ if (isset($success))
 }
 ?>
 <div id="register_wrapper">
-<?php echo form_open("sales/change_mode",array('id'=>'mode_form')); ?>
-	<span><?php echo $this->lang->line('sales_mode') ?></span>
-<?php echo form_dropdown('mode',$modes,$mode,'onchange="$(\'#mode_form\').submit();"'); ?>
-<?php if (count($stock_locations) > 1): ?>
-<span><?php echo $this->lang->line('sales_stock_location') ?></span>
-<?php echo form_dropdown('stock_location',$stock_locations,$stock_location,'onchange="$(\'#mode_form\').submit();"'); ?>
-<?php endif; ?>
-<div id="show_suspended_sales_button">
-	<?php echo anchor("sales/suspended/width:425",
-	"<div class='small_button'><span style='font-size:73%;'>".$this->lang->line('sales_suspended_sales')."</span></div>",
-	array('class'=>'thickbox none','title'=>$this->lang->line('sales_suspended_sales')));
+	<?php echo form_open("receivings/change_mode",array('id'=>'mode_form')); ?>
+    <span><?php echo $this->lang->line('recvs_mode') ?></span>&nbsp &nbsp
+	<?php echo form_dropdown('mode',$modes,$mode,'onchange="$(\'#mode_form\').submit();"'); ?>
+    &nbsp &nbsp  &nbsp &nbsp  &nbsp &nbsp &nbsp 
+	<?php 
+	
+	if ($show_stock_locations) 
+	{
 	?>
+    <span><?php echo $this->lang->line('recvs_stock_source') ?></span>&nbsp
+    <?php echo form_dropdown('stock_source',$stock_locations,$stock_source,'onchange="$(\'#mode_form\').submit();"');?>
+   
+	<?php 
+    if($mode=='requisition')
+    {
+    ?>
+    </br><h3 style= "margin: 7px 0;"></h3>
+    <span><?php echo $this->lang->line('recvs_stock_destination') ?></span>&nbsp
+	<?php echo form_dropdown('stock_destination',$stock_locations,$stock_destination,'onchange="$(\'#mode_form\').submit();"');        
+    }
+	}
+	?>  
+    <div id="show_receivings_sales_button">
+    <?php
+	// This part conntrols if there are Items already in the sale.
+	//if(count($cart)==0)
+	{
+	?>
+  
+	<?php echo anchor("receivings/received/width:425", "<div class='small_button'><span style='font-size:90%;'>".$this->lang->line('recvs_received')."</span></div>",
+	 array('class'=>'thickbox none','title'=>$this->lang->line('recvs_received')));
+	 ?> 
+     <?php
+		}
+		?>  
 </div>
+
 	</form>
 <?php echo form_open("sales/add",array('id'=>'add_item_form')); ?>
 <label id="item_label" for="item">
 
 <?php
+if($mode=='sale_retail' or $mode=='sale_wholesale')
+{
+	echo $this->lang->line('sales_find_or_scan_item');
+}
+else
+{
 	echo $this->lang->line('sales_find_or_scan_item_or_receipt');
+}
 ?>
 </label>
 

@@ -217,7 +217,7 @@ class Sales extends Secure_area
 		$data['payments']=$this->sale_lib->get_payments();
 		$data['amount_change']=to_currency($this->sale_lib->get_amount_due() * -1);
 		$data['employee']=$emp_info->first_name.' '.$emp_info->last_name;
-
+        
 		if($customer_id!=-1)
 		{
 			$cust_info=$this->Customer->get_info($customer_id);
@@ -358,7 +358,8 @@ class Sales extends Secure_area
 		}
 
 		/* Changed the conditional to account for floating point rounding */
-		if ( ( $this->sale_lib->get_mode() == 'sale' ) && ( ( to_currency_no_money( $this->sale_lib->get_total() ) - $total_payments ) > 1e-6 ) )
+		if ( ($this->sale_lib->get_mode() == 'sale') && 
+		      ( ( to_currency_no_money( $this->sale_lib->get_total() ) - $total_payments ) > 1e-6 ) )
 		{
 			return false;
 		}
@@ -369,30 +370,20 @@ class Sales extends Secure_area
 	function _reload($data=array())
 	{
 		$person_info = $this->Employee->get_logged_in_employee_info();
-		$data['sale_id']=$this->sale_lib->get_sale_id();
-		$data['cart']=$this->sale_lib->get_cart();
-		$data['modes']=array('sale'=>$this->lang->line('sales_sale'),'return'=>$this->lang->line('sales_return'));
-		$data['mode']=$this->sale_lib->get_mode();
-		
-		$data['stock_locations'] = array();
-        $stock_locations = $this->Stock_locations->get_undeleted_all()->result_array();
-        $show_stock_locations = count($stock_locations) > 1;
-        if ($show_stock_locations) {
-	        foreach($stock_locations as $location_data)
-	        {            
-	            $data['stock_locations'][$location_data['location_id']] = $location_data['location_name'];
-	        }       		
-	        $data['stock_location']=$this->sale_lib->get_sale_location();
-        }
-        $data['show_stock_locations'] = $show_stock_locations;
-
+		$data['cart']=$this->sale_lib->get_cart();	 
+        $data['modes']=array('sale'=>$this->lang->line('sales_sale'),'return'=>$this->lang->line('sales_return'));
+        $data['mode']=$this->sale_lib->get_mode();
+                     
+        $data['stock_locations']=$this->Stock_locations->get_allowed_locations();
+        $data['stock_location']=$this->sale_lib->get_sale_location();
+        
 		$data['subtotal']=$this->sale_lib->get_subtotal();
 		$data['taxes']=$this->sale_lib->get_taxes();
 		$data['total']=$this->sale_lib->get_total();
-		$data['items_module_allowed'] = $this->Employee->has_permission('items', $person_info->person_id);
-		$data['comment'] = $this->sale_lib->get_comment();
+		$data['items_module_allowed']=$this->Employee->has_grant('items', $person_info->person_id);
+		$data['comment']=$this->sale_lib->get_comment();
+		$data['email_receipt']=$this->sale_lib->get_email_receipt();
 		$data['trans_no'] = $this->sale_lib->get_trans_no();
-		$data['email_receipt'] = $this->sale_lib->get_email_receipt();
 		$data['payments_total']=$this->sale_lib->get_payments_total();
 		$data['amount_due']=$this->sale_lib->get_amount_due();
 		$data['payments']=$this->sale_lib->get_payments();
@@ -403,7 +394,7 @@ class Sales extends Secure_area
 			$this->lang->line('sales_debit') => $this->lang->line('sales_debit'),
 			$this->lang->line('sales_credit') => $this->lang->line('sales_credit')
 		);
-		//$data['sale_id']='POS'.$sale_id;
+
 		$customer_id=$this->sale_lib->get_customer();
 		if($customer_id!=-1)
 		{
