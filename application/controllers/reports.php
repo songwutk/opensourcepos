@@ -13,12 +13,15 @@ class Reports extends Secure_area
 		$method_name = $this->uri->segment(2);
 		$exploder = explode('_', $method_name);
 		$submodule_id = preg_match("/([^_.]*)(?:_graph)?$/", $method_name, $matches);
+		preg_match("/(?:inventory)|([^_.]*)(?:_graph)?$/", $method_name, $matches);
+		preg_match("/^(.*?)([sy])?$/", array_pop($matches), $matches);
+		$submodule_id = $matches[1] . ((count($matches) > 2) ? $matches[2] : "s");
 		$employee_id=$this->Employee->get_logged_in_employee_info()->person_id;
 		// check access to report submodule
-		/* if (sizeof($exploder) > 1 && !$this->Employee->has_permission('reports_'.$matches[1],$employee_id))
+		if (sizeof($exploder) > 1 && !$this->Employee->has_grant('reports_'.$submodule_id,$employee_id))
 		{
-			redirect('no_access/'.$submodule_id);
-		} */
+			redirect('no_access/reports/reports_' . $submodule_id);
+		}
 		$this->load->helper('report');		
 	}
 	
