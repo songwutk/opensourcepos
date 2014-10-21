@@ -28,7 +28,7 @@ class Sale extends CI_Model
 		return $success;
 	}
 	
-	function save ($items,$customer_id,$employee_id,$comment,$trans_no,$payments,$sale_id=false)
+	function save ($items,$customer_id,$employee_id,$comment,$payments,$sale_id=false)
 	{
 		if(count($items)==0)
 			return -1;
@@ -43,7 +43,6 @@ class Sale extends CI_Model
 
 		$sales_data = array(
 			'sale_time' => date('Y-m-d H:i:s'),
-			'trans_no' =>$trans_no,
 			'customer_id'=> $this->Customer->exists($customer_id) ? $customer_id : null,
 			'employee_id'=>$employee_id,
 			'payment_type'=>$payment_types,
@@ -143,7 +142,8 @@ class Sale extends CI_Model
 		return $sale_id;
 	}
 	
-	function delete_list($sale_ids, $employee_id,$update_inventory=TRUE) {
+	function delete_list($sale_ids, $employee_id,$update_inventory=TRUE) 
+	{
 		$result = TRUE;
 		foreach($sale_ids as $sale_id) {
 			$result &= $this->delete($sale_id, $employee_id, $update_inventory);
@@ -151,7 +151,8 @@ class Sale extends CI_Model
 		return $result;
 	}
 	
-	function delete($sale_id,$employee_id,$update_inventory=TRUE) {
+	function delete($sale_id,$employee_id,$update_inventory=TRUE) 
+	{
 		// start a transaction to assure data integrity
 		$this->db->trans_start();
 		// first delete all payments
