@@ -50,29 +50,6 @@ class Receiving_lib
 		$this->CI->session->unset_userdata('receiving_id');
 	}
 	
-	function get_inv_no()
-	{
-		if(!$this->CI->session->userdata('inv_no'))
-		{
-			//$inv_no = $inv_no('');
-			//return $inv_no;
-			}
-			else
-			{
-		return $this->CI->session->userdata('inv_no');
-		}
-	}
-	
-	function set_inv_no($inv_no)
-	{
-		$this->CI->session->set_userdata('inv_no',$inv_no);
-	}
-	
-	function clear_inv_no() 	
-	{
-		$this->CI->session->unset_userdata('inv_no');
-	}
-
 	function get_mode()
 	{
 		if(!$this->CI->session->userdata('recv_mode'))
@@ -306,7 +283,6 @@ class Receiving_lib
 			$this->add_item($row->item_id,-$row->quantity_purchased,$row->item_location,$row->discount_percent,$row->item_unit_price,$row->description,$row->serialnumber);
 		}
 		$this->set_supplier($this->CI->Receiving->get_supplier($receiving_id)->person_id);
-		$this->set_inv_no($this->CI->Receiving->get_inv_no($receiving_id));
 	}
 	
 	function add_item_kit($external_item_kit_id,$item_location)
@@ -358,7 +334,6 @@ class Receiving_lib
 			$this->add_item($row->item_id,$row->quantity_purchased,$row->item_location,$row->discount_percent,$row->item_unit_price,$row->description,$row->serialnumber);
 		}
 		$this->set_supplier($this->CI->Receiving_inv->get_supplier($receiving_id)->person_id);
-		$this->set_inv_no($this->CI->Receiving_inv->get_inv_no($receiving_id));
 		$this->set_comment($this->CI->Receiving_inv->get_comment($receiving_id));
 	}
 
@@ -379,11 +354,6 @@ class Receiving_lib
 		$this->CI->session->unset_userdata('supplier');
 	}
 	
-	function delete_inv_no()
-	{
-		$this->CI->session->unset_userdata('inv_no');
-	}
-
 	function clear_mode()
 	{
 		$this->CI->session->unset_userdata('receiving_mode');
