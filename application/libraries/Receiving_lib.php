@@ -34,22 +34,7 @@ class Receiving_lib
 	{
 		$this->CI->session->set_userdata('supplier',$supplier_id);
 	}
-	
-	function get_receiving_id() 
-	{
-			return $this->CI->session->userdata('receiving_id');
-	}	
-	
-	function set_receiving_id($receiving_id) 
-	{	
-	$this->CI->session->set_userdata('receiving_id', $receiving_id);
-	}
-	
-	function clear_receiving_id() 	
-	{
-		$this->CI->session->unset_userdata('receiving_id');
-	}
-	
+
 	function get_mode()
 	{
 		if(!$this->CI->session->userdata('recv_mode'))
