@@ -330,7 +330,7 @@ class Receivings extends Secure_area
 		if($supplier_id!=-1)
 		{
 			$suppl_info=$this->Supplier->get_info($supplier_id);
-			$data['supplier']=$info->company_name;  // first_name.' '.$info->last_name;
+			$data['supplier']=$suppl_info->company_name;  // first_name.' '.$info->last_name;
 		}
 		$data['invoice_number']=$this->_substitute_invoice_number($suppl_info);
 		
